@@ -175,6 +175,15 @@ function sLbl(s){const{dow,hour}=s2dh(s);return DN[dow]+' '+String(hour).padStar
 
 function gV(p,fld,dow,hour){const m=p[fld];if(!m)return 0;const d=m[dow];if(!d)return 0;return d[hour]||0;}
 
+const GLOBAL_MAX={};
+(function(){
+  Object.keys(TAB_CFG).forEach(t=>{
+    const fld=TAB_CFG[t].field;let mx=0;
+    for(const dow of DO)for(let h=0;h<24;h++)P.forEach(p=>{const v=gV(p,fld,dow,h);if(v>mx)mx=v;});
+    GLOBAL_MAX[t]=mx;
+  });
+})();
+
 function gFilt(){
   const{dow,hour}=s2dh(cSlot);
   const cfg=TAB_CFG[cTab];
@@ -206,11 +215,12 @@ function uStats(data){
   const cfg=TAB_CFG[cTab];
   const n=data.length;
   const vals=data.map(d=>d.mv);
-  const mx=n?Math.max(...vals):0;
+  const slotMax=n?Math.max(...vals):0;
   const avg=n?vals.reduce((s,v)=>s+v,0)/n:0;
+  const mx=GLOBAL_MAX[cTab]||slotMax||1;
   document.getElementById('sp').textContent=n.toLocaleString();
   document.getElementById('sv').textContent=cfg.fmt(avg);
-  document.getElementById('sm').textContent=cfg.fmt(mx);
+  document.getElementById('sm').textContent=cfg.fmt(slotMax);
   document.getElementById('ml').textContent=cfg.label+'/provider';
   document.getElementById('lgt').textContent=cfg.lgLabel;
   document.getElementById('lgx').textContent=cfg.pct?mx.toFixed(0)+'%':mx.toFixed(1)+cfg.unit;
